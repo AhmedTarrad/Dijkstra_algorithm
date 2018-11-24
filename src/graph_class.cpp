@@ -36,7 +36,7 @@ static float random_distance(float min_distance, float max_distance)
 }
 
 
-Graph::Graph(int num_nodes, float density, float min_distance, float max_distance):graph_size(num_nodes)
+Graph::Graph(int num_nodes, float density, float min_distance, float max_distance):graph_size(num_nodes),graph_edges_number(0)
 {
 	srand(time(0));
 
@@ -44,10 +44,11 @@ Graph::Graph(int num_nodes, float density, float min_distance, float max_distanc
 	 * It's a dynamic memory allocated with the size of the graph
 	 * For non edge --> distance will be zero
 	 * For an existing edge --> distance (value stored in the 2D array) is randomly selected from the range */
-	graph_ptr = new float*[num_nodes];
+	p_graph = new float*[num_nodes];
+
 	for(int i = 0; i < num_nodes; ++i)
 	{
-		graph_ptr[i] = new float[num_nodes];
+		p_graph[i] = new float[num_nodes];
 	}
 
 	/* Init the graph edges randomly */
@@ -57,28 +58,40 @@ Graph::Graph(int num_nodes, float density, float min_distance, float max_distanc
 		{
 			if(i == j)
 			{
-				graph_ptr[i][j] = 0.0f;
+				p_graph[i][j] = 0.0f;
 			}
 			else
 			{
 				/* TODO: Improve this checker to handle the return 1 probability by using the machine epsilon */
-				graph_ptr[i][j] = graph_ptr[j][i] = ( static_cast <int> (random_probability() < density) )
+				p_graph[i][j] = p_graph[j][i] = ( static_cast <int> (random_probability() < density) )
 														* random_distance(min_distance, max_distance);
+
+				if(p_graph[i][j] > 0.0f)
+				{
+					graph_edges_number++;
+				}
 			}
 		}
+	}
+
+	p_nodes_value = new float[num_nodes];
+	for(int i = 0; i < num_nodes; ++i)
+	{
+		p_nodes_value[i] = 0.0f;
 	}
 
 }
 
 void Graph::GraphPrint()
 {
-	cout<<"my random graph size is " << graph_size <<endl;
+	cout<<"Graph size is " << graph_size <<endl;
+	cout<<"Graph edges number is " << graph_edges_number <<endl;
 
 	for(int i = 0; i < graph_size; ++i)
 	{
 		for(int j = 0; j < graph_size; ++j)
 		{
-			cout << graph_ptr[i][j]<< "\t";
+			cout << p_graph[i][j]<< "\t";
 		}
 		cout << endl;
 	}
@@ -111,7 +124,7 @@ bool Graph::IsGraphConnected()
 
 				for(int j = 0; j < graph_size; ++j)
 				{
-					open_set[j] = open_set[j] || (static_cast <bool> (graph_ptr[i][j]));
+					open_set[j] = open_set[j] || (static_cast <bool> (p_graph[i][j]));
 				}
 			}
 		}
@@ -131,3 +144,57 @@ bool Graph::IsGraphConnected()
 
 	return is_connected;
 }
+
+
+int Graph::GraphSize()
+{
+	return graph_size;
+}
+
+int Graph::NumberOfGraphEdges()
+{
+	return graph_edges_number;
+}
+
+bool* Graph::GetNeighbors(int node_a)
+{
+	bool* node_neighbors = new bool[graph_size];
+
+	for(int i = 0; i < graph_size; ++i)
+	{
+		node_neighbors[i] = (static_cast <bool> (p_graph[node_a][i]));
+	}
+
+	return node_neighbors;
+}
+
+bool Graph::IsEdgeExist(int edge_start_node, int edge_end_node)
+{
+	return (static_cast <bool> (p_graph[edge_start_node][edge_end_node]));
+}
+
+void Graph::DeleteEdge(int edge_start_node, int edge_end_node)
+{
+	p_graph[edge_start_node][edge_end_node] = 0.0f;
+}
+
+float Graph::GetEdgeDistance(int edge_start_node, int edge_end_node)
+{
+	return (p_graph[edge_start_node][edge_end_node]);
+}
+
+void Graph::SetEdgeDistance(int edge_start_node, int edge_end_node, float edge_distance)
+{
+	p_graph[edge_start_node][edge_end_node] = edge_distance;
+}
+
+float Graph::GetNodeValue(int node_a)
+{
+	return p_nodes_value[node_a];
+}
+
+void Graph::SetNodeValue(int node_a, float node_value)
+{
+	p_nodes_value[node_a] = node_value;
+}
+
