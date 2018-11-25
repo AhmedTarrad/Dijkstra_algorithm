@@ -8,7 +8,20 @@
 #ifndef GRAPH_CLASS_H_
 #define GRAPH_CLASS_H_
 
+#include <limits>
+
 using namespace std;
+
+#define UNDEFINED numeric_limits<int>::max()
+
+class Node_Data
+{
+public:
+	float node_value;
+	int parent;
+
+};
+
 
 class Graph
 {
@@ -32,7 +45,7 @@ public:
 
 private:
 	float** p_graph;
-	float* p_nodes_value;
+	Node_Data* p_nodes_data;
 	int graph_size;
 	int graph_edges_number;
 };

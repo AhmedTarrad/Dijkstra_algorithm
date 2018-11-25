@@ -8,6 +8,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
+#include <limits>
 
 #include "graph_class.h"
 
@@ -52,32 +53,42 @@ Graph::Graph(int num_nodes, float density, float min_distance, float max_distanc
 	}
 
 	/* Init the graph edges randomly */
-	for(int i = 0; i < num_nodes; ++i)
+	if( ( (min_distance + numeric_limits<float>::epsilon()) > 0.0f ) &&
+		( max_distance < numeric_limits<float>::max() ))
 	{
-		for(int j = i; j < num_nodes; ++j)
+		for(int i = 0; i < num_nodes; ++i)
 		{
-			if(i == j)
+			for(int j = i; j < num_nodes; ++j)
 			{
-				p_graph[i][j] = 0.0f;
-			}
-			else
-			{
-				/* TODO: Improve this checker to handle the return 1 probability by using the machine epsilon */
-				p_graph[i][j] = p_graph[j][i] = ( static_cast <int> (random_probability() < density) )
-														* random_distance(min_distance, max_distance);
-
-				if(p_graph[i][j] > 0.0f)
+				if(i == j)
 				{
-					graph_edges_number++;
+					p_graph[i][j] = 0.0f;
+				}
+				else
+				{
+					/* TODO: Improve this checker to handle the return 1 probability by using the machine epsilon */
+					p_graph[i][j] = p_graph[j][i] = ( static_cast <int> (random_probability() < density) )
+															* random_distance(min_distance, max_distance);
+
+					if(p_graph[i][j] > 0.0f)
+					{
+						graph_edges_number++;
+					}
 				}
 			}
 		}
 	}
+	else
+	{
+		/* TODO: write an assert for distance range out of the float min and max or negative distance */
+	}
 
-	p_nodes_value = new float[num_nodes];
+
+	p_nodes_data = new Node_Data[num_nodes];
 	for(int i = 0; i < num_nodes; ++i)
 	{
-		p_nodes_value[i] = 0.0f;
+		p_nodes_data[i].node_value = numeric_limits<float>::infinity();
+		p_nodes_data[i].parent = UNDEFINED;
 	}
 
 }
@@ -190,11 +201,11 @@ void Graph::SetEdgeDistance(int edge_start_node, int edge_end_node, float edge_d
 
 float Graph::GetNodeValue(int node_a)
 {
-	return p_nodes_value[node_a];
+	return p_nodes_data[node_a].node_value;
 }
 
 void Graph::SetNodeValue(int node_a, float node_value)
 {
-	p_nodes_value[node_a] = node_value;
+	p_nodes_data[node_a].node_value = node_value;
 }
 
